@@ -1,0 +1,30 @@
+# Virtual environment - machine-specific, reproducible via requirements.txt
+.venv/
+
+# Python cache/bytecode - regenerated automatically, never meaningful to track
+__pycache__/
+*.pyc
+
+# Environment variables / secrets - NEVER commit real credentials
+.env
+
+# Pytest cache
+.pytest_cache/
+
+# Runtime logs and local data - not part of source code
+logs/*
+!logs/.gitkeep
+
+# Sample error payloads used only for local testing (add real ones later if useful to share)
+# sample_errors/ - left trackable for now since these are useful shared test fixtures
+
+# VS Code workspace-specific settings (keep only if you want personal settings untracked)
+.vscode/*
+!.vscode/settings.json
+
+# OS junk files
+Thumbs.db
+.DS_Store
+
+# Temporary/manual debugging scripts
+temp/
