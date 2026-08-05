@@ -1,0 +1,74 @@
+[
+  {
+    "exception_id": "e-2001",
+    "related_flow_id": "f-1001",
+    "run_id": "run-a1",
+    "error_message": "The remote server returned an error: (401) Unauthorized.",
+    "exception_type": "AuthenticationFailed",
+    "action_name": "Call SAP REST API",
+    "timestamp": "2025-01-15T08:12:00",
+    "status": "Failed",
+    "machine_name": null,
+    "severity": "High"
+  },
+  {
+    "exception_id": "e-2002",
+    "related_flow_id": "f-1003",
+    "run_id": "run-b1",
+    "error_message": "UI element 'SaveButton' not found on screen.",
+    "exception_type": "ElementNotFound",
+    "action_name": "Click Save Button",
+    "timestamp": "2025-01-15T09:00:00",
+    "status": "Failed",
+    "machine_name": "DESKTOP-WH01",
+    "severity": null
+  },
+  {
+    "exception_id": "e-2003",
+    "related_flow_id": "f-1003",
+    "run_id": "run-b1",
+    "error_message": "UI element 'SaveButton' not found on screen.",
+    "exception_type": "ElementNotFound",
+    "action_name": "Click Save Button",
+    "timestamp": "2025-01-15T09:05:00",
+    "status": "Failed",
+    "machine_name": "DESKTOP-WH01",
+    "severity": null
+  },
+  {
+    "exception_id": "e-2004",
+    "related_flow_id": "f-1003",
+    "run_id": "run-b1",
+    "error_message": "UI element 'SaveButton' not found on screen.",
+    "exception_type": "ElementNotFound",
+    "action_name": "Click Save Button",
+    "timestamp": "2025-01-15T09:10:00",
+    "status": "Failed",
+    "machine_name": "DESKTOP-WH01",
+    "severity": "Medium"
+  },
+  {
+    "exception_id": "e-2005",
+    "related_flow_id": "f-1004",
+    "run_id": "run-c1",
+    "error_message": "Connector 'shared_sharepointonline' not found.",
+    "exception_type": "ConnectorFailure",
+    "action_name": "Get Vendor Documents",
+    "timestamp": "2025-01-15T07:30:00",
+    "status": "Failed",
+    "machine_name": null,
+    "severity": "Low"
+  },
+  {
+    "exception_id": "e-2006",
+    "related_flow_id": "f-1002",
+    "run_id": "run-d1",
+    "error_message": "Request timed out after 120 seconds.",
+    "exception_type": "Timeout",
+    "action_name": "Get Approver from Dataverse",
+    "timestamp": "2025-01-15T10:00:00",
+    "status": "Resolved",
+    "machine_name": null,
+    "severity": null
+  }
+]

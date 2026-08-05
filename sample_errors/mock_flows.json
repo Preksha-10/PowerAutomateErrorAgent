@@ -1,0 +1,42 @@
+[
+  {
+    "flow_id": "f-1001",
+    "flow_name": "Invoice Sync to SAP",
+    "environment": "Production",
+    "owner": "finance-automation@kone.com",
+    "status": "Enabled",
+    "flow_type": "Cloud"
+  },
+  {
+    "flow_id": "f-1002",
+    "flow_name": "PO Approval Routing",
+    "environment": "Production",
+    "owner": "procurement-team@kone.com",
+    "status": "Enabled",
+    "flow_type": "Cloud"
+  },
+  {
+    "flow_id": "f-1003",
+    "flow_name": "Warehouse Excel Consolidation",
+    "environment": "Production",
+    "owner": "ops-team@kone.com",
+    "status": "Enabled",
+    "flow_type": "Desktop"
+  },
+  {
+    "flow_id": "f-1004",
+    "flow_name": "Legacy Vendor Onboarding",
+    "environment": "Production",
+    "owner": "vendor-ops@kone.com",
+    "status": "Disabled",
+    "flow_type": "Cloud"
+  },
+  {
+    "flow_id": "f-1005",
+    "flow_name": "SAP Order Extract",
+    "environment": "UAT",
+    "owner": "ops-team@kone.com",
+    "status": "Enabled",
+    "flow_type": "Desktop"
+  }
+]
