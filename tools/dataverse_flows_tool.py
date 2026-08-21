@@ -13,6 +13,23 @@ from typing import List
 from services.dataverse_client import DataverseClient
 from models.flow_record import FlowRecord
 
+TOOL_SCHEMA = {
+    "type": "function",
+    "function": {
+        "name": "get_active_flows",
+        "description": (
+            "Retrieves all active monitored Power Automate flows "
+            "from Dataverse. Only flows currently considered "
+            "monitored are returned."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+        },
+    },
+}
+
 
 @dataclass
 class GetActiveFlowsInput:
@@ -45,3 +62,41 @@ def get_active_flows(client: DataverseClient) -> GetActiveFlowsOutput:
     all_flows = client.get_flows()
     active = [f for f in all_flows if f.is_monitored]
     return GetActiveFlowsOutput(flows=active)
+
+def execute_tool_call(
+    tool_name: str,
+    arguments: dict,
+    client: DataverseClient,
+) -> dict:
+    """
+    Execute a Dataverse Flows tool call using the application's
+    DataverseClient dependency.
+
+    The Agent supplies only the tool name and arguments.
+    Infrastructure dependencies such as DataverseClient are
+    injected by the application layer.
+    """
+
+    if tool_name != TOOL_SCHEMA["function"]["name"]:
+        raise ValueError(f"Unknown tool: {tool_name}")
+
+    if arguments:
+        raise ValueError(
+            "get_active_flows does not accept any arguments"
+        )
+
+    result = get_active_flows(client)
+
+    return {
+        "flows": [
+            {
+                "flow_id": flow.flow_id,
+                "flow_name": flow.flow_name,
+                "environment": flow.environment,
+                "owner": flow.owner,
+                "status": flow.status.value,
+                "flow_type": flow.flow_type.value,
+            }
+            for flow in result.flows
+        ]
+    }
