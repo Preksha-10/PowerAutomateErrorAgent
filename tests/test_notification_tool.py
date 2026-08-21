@@ -26,6 +26,10 @@ from tools.notification_tool import (
     send_teams_notification,
 )
 
+from tools.notification_tool import (
+    TOOL_SCHEMA,
+    execute_tool_call,
+)
 
 def make_sample_report(**overrides) -> IncidentReport:
     """Helper: builds a consistent IncidentReport for notification tests."""
@@ -152,3 +156,19 @@ def test_stub_transport_actually_logs_the_message(caplog):
         send_teams_notification(report)
 
     assert any("TEAMS NOTIFICATION" in record.message for record in caplog.records)
+
+    def test_send_notification_tool_schema():
+        assert TOOL_SCHEMA["type"] == "function"
+
+        function_schema = TOOL_SCHEMA["function"]
+
+        assert function_schema["name"] == "send_notification"
+
+        properties = function_schema["parameters"]["properties"]
+
+        assert "report" in properties
+        assert "channels" in properties
+
+        assert set(
+            function_schema["parameters"]["required"]
+        ) == {"report", "channels"}

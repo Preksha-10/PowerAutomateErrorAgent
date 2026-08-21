@@ -16,6 +16,10 @@ from datetime import datetime, timezone
 from models.incident_report import ErrorCategory, IncidentReport, Severity
 from tools.incident_logger_tool import get_incident, log_incident, mark_processed
 
+from tools.incident_logger_tool import (
+    TOOL_SCHEMA,
+    execute_tool_call,
+)
 
 def make_sample_report(**overrides) -> IncidentReport:
     """Helper: builds a consistent IncidentReport for logger tests."""
@@ -141,3 +145,25 @@ def test_db_directory_is_created_automatically(tmp_path):
     incident_id = log_incident(report, db_path=nested_db_path)
 
     assert get_incident(incident_id, db_path=nested_db_path) is not None
+
+    def test_incident_logger_tool_schema():
+        assert TOOL_SCHEMA["type"] == "function"
+
+        function_schema = TOOL_SCHEMA["function"]
+
+        assert function_schema["name"] == "incident_logger"
+
+        properties = function_schema["parameters"]["properties"]
+
+        assert "operation" in properties
+        assert "report" in properties
+        assert "incident_id" in properties
+
+        assert function_schema["parameters"]["required"] == ["operation"]
+
+    def test_incident_logger_rejects_invalid_operation():
+        with pytest.raises(ValueError, match="operation must be"):
+            execute_tool_call(
+                tool_name="incident_logger",
+                arguments={"operation": "invalid"},
+            )

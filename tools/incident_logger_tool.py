@@ -31,6 +31,43 @@ from typing import Optional
 
 from models.incident_report import IncidentReport
 
+TOOL_SCHEMA = {
+    "type": "function",
+    "function": {
+        "name": "incident_logger",
+        "description": (
+            "Logs a completed incident report or marks an existing "
+            "incident as processed."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "operation": {
+                    "type": "string",
+                    "enum": ["log", "mark_processed"],
+                    "description": (
+                        "Operation to perform."
+                    ),
+                },
+                "report": {
+                    "type": "object",
+                    "description": (
+                        "IncidentReport required when operation is log."
+                    ),
+                },
+                "incident_id": {
+                    "type": "string",
+                    "description": (
+                        "Existing incident ID required when "
+                        "operation is mark_processed."
+                    ),
+                },
+            },
+            "required": ["operation"],
+        },
+    },
+}
+
 DEFAULT_DB_PATH = "temp/incidents.db"
 
 
@@ -184,3 +221,51 @@ def mark_processed(incident_id: str, db_path: str = DEFAULT_DB_PATH) -> bool:
             (incident_id,),
         )
         return cursor.rowcount > 0
+
+
+def execute_tool_call(
+tool_name: str,
+arguments: dict,
+) -> dict:
+    """Execute incident logging operations from Agent input."""
+
+    if tool_name != TOOL_SCHEMA["function"]["name"]:
+        raise ValueError(f"Unknown tool: {tool_name}")
+
+    operation = arguments.get("operation")
+
+    if operation == "log":
+        if "report" not in arguments:
+            raise ValueError(
+                "report is required for log operation"
+            )
+
+        report = IncidentReport.model_validate(
+            arguments["report"]
+        )
+
+        incident_id = log_incident(report)
+
+        return {
+            "success": True,
+            "incident_id": incident_id,
+        }
+
+    if operation == "mark_processed":
+        if not arguments.get("incident_id"):
+            raise ValueError(
+                "incident_id is required for mark_processed"
+            )
+
+        success = mark_processed(
+            arguments["incident_id"]
+        )
+
+        return {
+            "success": success,
+            "incident_id": arguments["incident_id"],
+        }
+
+    raise ValueError(
+        "operation must be either 'log' or 'mark_processed'"
+    )

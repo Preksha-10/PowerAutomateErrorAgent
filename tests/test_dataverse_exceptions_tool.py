@@ -10,6 +10,11 @@ from tools.dataverse_exceptions_tool import (
     GetFailedExceptionsInput,
     GetFailedExceptionsOutput,
 )
+from tools.dataverse_exceptions_tool import (
+    TOOL_SCHEMA,
+    execute_tool_call,
+)
+
 
 
 @pytest.fixture
@@ -96,3 +101,42 @@ def test_get_failed_exceptions_returns_empty_list_when_none_failed(tmp_path):
     )
     result = get_failed_exceptions(client)
     assert result.exceptions == []
+
+    def test_get_failed_exceptions_tool_schema():
+        assert TOOL_SCHEMA["type"] == "function"
+
+        function_schema = TOOL_SCHEMA["function"]
+
+        assert function_schema["name"] == "get_failed_exceptions"
+        assert function_schema["parameters"]["type"] == "object"
+        assert "since" in function_schema["parameters"]["properties"]
+        assert function_schema["parameters"]["required"] == []
+
+
+def test_mock_foundry_tool_call_executes_get_failed_exceptions(
+    client_with_mixed_exceptions,
+):
+    tool_call = {
+        "name": "get_failed_exceptions",
+        "arguments": {},
+    }
+
+    result = execute_tool_call(
+        tool_name=tool_call["name"],
+        arguments=tool_call["arguments"],
+        client=client_with_mixed_exceptions,
+    )
+
+    assert "exceptions" in result
+    assert isinstance(result["exceptions"], list)
+
+
+def test_get_failed_exceptions_rejects_unknown_argument(
+    client_with_mixed_exceptions,
+):
+    with pytest.raises(ValueError, match="unsupported arguments"):
+        execute_tool_call(
+            tool_name="get_failed_exceptions",
+            arguments={"invalid": "value"},
+            client=client_with_mixed_exceptions,
+        )

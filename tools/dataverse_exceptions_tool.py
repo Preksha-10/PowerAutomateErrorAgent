@@ -12,6 +12,31 @@ from typing import List, Optional
 from services.dataverse_client import DataverseClient
 from models.exception_record import ExceptionRecord
 
+TOOL_SCHEMA = {
+    "type": "function",
+    "function": {
+        "name": "get_failed_exceptions",
+        "description": (
+            "Retrieves active failed Power Automate exceptions "
+            "from Dataverse. Optionally restricts the query to "
+            "exceptions occurring since a specified timestamp."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "since": {
+                    "type": "string",
+                    "description": (
+                        "Optional ISO-8601 timestamp. "
+                        "Only exceptions occurring since this time "
+                        "should be considered."
+                    ),
+                }
+            },
+            "required": [],
+        },
+    },
+}
 
 @dataclass
 class GetFailedExceptionsInput:
@@ -49,3 +74,56 @@ def get_failed_exceptions(
     all_exceptions = client.get_exceptions()
     failed = [e for e in all_exceptions if e.is_active_failure]
     return GetFailedExceptionsOutput(exceptions=failed)
+
+def execute_tool_call(
+    tool_name: str,
+    arguments: dict,
+    client: DataverseClient,
+) -> dict:
+    """Execute the Dataverse Exceptions Foundry-style tool call."""
+
+    if tool_name != TOOL_SCHEMA["function"]["name"]:
+        raise ValueError(f"Unknown tool: {tool_name}")
+
+    allowed_arguments = {"since"}
+
+    unexpected = set(arguments) - allowed_arguments
+
+    if unexpected:
+        raise ValueError(
+            f"get_failed_exceptions received unsupported arguments: "
+            f"{sorted(unexpected)}"
+        )
+
+    since = arguments.get("since")
+
+    params = GetFailedExceptionsInput()
+
+    if since is not None:
+        try:
+            params.since = datetime.fromisoformat(
+                since.replace("Z", "+00:00")
+            )
+        except ValueError as exc:
+            raise ValueError(
+                "since must be a valid ISO-8601 timestamp"
+            ) from exc
+
+    result = get_failed_exceptions(client, params)
+
+    return {
+        "exceptions": [
+            {
+                "exception_id": exception.exception_id,
+                "related_flow_id": exception.related_flow_id,
+                "run_id": exception.run_id,
+                "error_message": exception.error_message,
+                "exception_type": exception.exception_type,
+                "action_name": exception.action_name,
+                "timestamp": exception.timestamp.isoformat(),
+                "status": exception.status.value,
+                "machine_name": exception.machine_name,
+            }
+            for exception in result.exceptions
+        ]
+    }

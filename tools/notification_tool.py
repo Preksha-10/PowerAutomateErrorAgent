@@ -24,6 +24,38 @@ from typing import List
 
 from models.incident_report import IncidentReport
 
+TOOL_SCHEMA = {
+    "type": "function",
+    "function": {
+        "name": "send_notification",
+        "description": (
+            "Sends a completed incident report through the "
+            "requested notification channels."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "report": {
+                    "type": "object",
+                    "description": "Completed IncidentReport.",
+                },
+                "channels": {
+                    "type": "array",
+                    "description": (
+                        "Notification channels to use. "
+                        "Supported values are Teams and Email."
+                    ),
+                    "items": {
+                        "type": "string",
+                        "enum": ["Teams", "Email"],
+                    },
+                },
+            },
+            "required": ["report", "channels"],
+        },
+    },
+}
+
 logger = logging.getLogger("power_automate_error_agent.notifications")
 
 
@@ -153,3 +185,44 @@ def send_notification(
             raise ValueError(f"Unsupported notification channel: {channel!r}")
         results.append(dispatch_map[channel](report))
     return results
+
+def execute_tool_call(
+    tool_name: str,
+    arguments: dict,
+) -> dict:
+    """Execute notification capability from Agent JSON input."""
+
+    if tool_name != TOOL_SCHEMA["function"]["name"]:
+        raise ValueError(f"Unknown tool: {tool_name}")
+
+    if "report" not in arguments:
+        raise ValueError("send_notification requires report")
+
+    if "channels" not in arguments:
+        raise ValueError("send_notification requires channels")
+
+    report = IncidentReport.model_validate(arguments["report"])
+
+    try:
+        channels = [
+            NotificationChannel(channel)
+            for channel in arguments["channels"]
+        ]
+    except ValueError as exc:
+        raise ValueError(
+            "channels must contain only Teams or Email"
+        ) from exc
+
+    results = send_notification(report, channels)
+
+    return {
+        "results": [
+            {
+                "channel": result.channel.value,
+                "success": result.success,
+                "sent_at": result.sent_at.isoformat(),
+                "rendered_message": result.rendered_message,
+            }
+            for result in results
+        ]
+    }
